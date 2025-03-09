@@ -1,0 +1,27 @@
+# Ignore the virtual environment folder
+venv/
+.venv/
+
+# Byte-compiled / intermediate files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Editor and IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and environment files
+*.log
+.env
+.DS_Store
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Python packaging files
+*.egg-info/
+dist/
+build/
