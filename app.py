@@ -13,13 +13,14 @@ class State(TypedDict):
   response: str
 
 
-llm = ChatGroq(
-    temperature=0,
-    
-    model_name = "llama-3.3-70b-versatile"
-)
-result = llm.invoke("What is langchain")
-result.content
+try:
+    llm = ChatGroq(
+        temperature=0,
+        model_name = "llama-3.3-70b-versatile"
+    )
+except Exception as e:
+    raise Exception("Failed to initialize Groq LLM. Please check your GROQ_API_KEY environment variable.")
+
 
 
 def categorize(state: State) -> State:
@@ -116,7 +117,7 @@ def run_customer_support(query: str)->Dict[str, str]:
 
 
 if __name__ == "__main__":
-    query = "How to bill my pyment fucker. fuck you all"
+    query = "How to pay my bill"
     result = run_customer_support(query)
     print(f"Query: {query}")
     print(f"Category: {result['category']}")

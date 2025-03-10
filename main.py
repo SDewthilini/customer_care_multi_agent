@@ -1,6 +1,11 @@
+from datetime import datetime
 import streamlit as st
 import time
 from app import run_customer_support
+from database import ChatDatabase
+
+# Initialize database
+db = ChatDatabase()
 
 st.set_page_config(
     page_title="Customer Support Agent",
@@ -11,11 +16,24 @@ st.set_page_config(
 st.title("Customer Support Agent")
 st.markdown("This application processes customer queries and shows the agent's thinking process.")
 
-# User input
-query = st.text_area("Enter your customer query:", height=100)
+# Initialize session state for conversation
+if 'conversation_id' not in st.session_state:
+    st.session_state.conversation_id = datetime.now().strftime('%Y%m%d%H%M%S')
+if 'parent_id' not in st.session_state:
+    st.session_state.parent_id = None
 
-# Create columns for displaying results
-if query and st.button("Process Query"):
+# Chat input
+query = st.chat_input("Type your message here...")
+
+# Display chat history
+for message in db.get_conversation_history(st.session_state.conversation_id):
+    with st.chat_message("user"):
+        st.write(message['query'])
+    with st.chat_message("assistant"):
+        st.write(message['response'])
+
+# Process new query
+if query:
     # Display thinking process with a spinner
     with st.spinner("Processing query..."):
         # Show thinking process
@@ -82,27 +100,28 @@ if query and st.button("Process Query"):
         # Optional: Add a divider and history section
         st.divider()
         
-        # Store history in session state if it doesn't exist
-        if 'history' not in st.session_state:
-            st.session_state.history = []
-        
-        # Add current interaction to history
-        st.session_state.history.append({
-            "query": query,
-            "category": result['category'],
-            "sentiment": result['sentiment'],
-            "response": result['response']
-        })
+        # Store interaction in database with conversation context
+        st.session_state.parent_id = db.add_interaction(
+            query=query,
+            category=result['category'],
+            sentiment=result['sentiment'],
+            response=result['response'],
+            conversation_id=st.session_state.conversation_id,
+            parent_id=st.session_state.parent_id
+        )
 
-# Display history if available
-if 'history' in st.session_state and st.session_state.history:
-    st.subheader("Previous Queries:")
-    for i, interaction in enumerate(reversed(st.session_state.history)):
-        with st.expander(f"Query {len(st.session_state.history) - i}: {interaction['query'][:50]}..."):
-            st.write(f"**Category:** {interaction['category']}")
-            st.write(f"**Sentiment:** {interaction['sentiment']}")
-            st.write(f"**Response:**")
-            st.write(interaction['response'])
+# Add a button to start new conversation
+if st.sidebar.button("Start New Conversation"):
+    # Clear the chat history from the session state
+    st.session_state.conversation_id = datetime.now().strftime('%Y%m%d%H%M%S')
+    st.session_state.parent_id = None
+    st.session_state.query = None  # Clear any existing query
+    
+    # Clear all chat-related session state
+    st.session_state.messages = []
+    
+    # Force a rerun to refresh the page
+    st.rerun()
 
 # Add a sidebar with information
 with st.sidebar:
