@@ -13,10 +13,15 @@ class State(TypedDict):
   response: str
 
 
+# try:
+#     llm = ChatGroq(
+#         temperature=0,
+#         model_name = "llama-3.3-70b-versatile"
+#     )
 try:
     llm = ChatGroq(
         temperature=0,
-        model_name = "llama-3.3-70b-versatile"
+        model_name="openai/gpt-oss-120b"
     )
 except Exception as e:
     raise Exception("Failed to initialize Groq LLM. Please check your GROQ_API_KEY environment variable.")
